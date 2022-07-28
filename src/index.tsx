@@ -1,9 +1,9 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { RecoilRoot } from "recoil";
-import { createGlobalStyle, ThemeProvider } from "styled-components";
-import App from "./App";
-import { theme } from "./theme/theme";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { RecoilRoot } from 'recoil';
+import { createGlobalStyle, ThemeProvider } from 'styled-components';
+import App from './App';
+import { theme } from './theme/theme';
 const GlobalStyle = createGlobalStyle`
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400&display=swap');
 html, body, div, span, applet, object, iframe,
@@ -46,8 +46,11 @@ a {
   color:inherit;
 }
 `;
+const rootElement = document.getElementById('root');
+if (!rootElement) throw new Error('Failed to find the root element');
+const root = ReactDOM.createRoot(rootElement);
 
-ReactDOM.render(
+root.render(
   <React.StrictMode>
     <RecoilRoot>
       <ThemeProvider theme={theme}>
@@ -56,5 +59,4 @@ ReactDOM.render(
       </ThemeProvider>
     </RecoilRoot>
   </React.StrictMode>,
-  document.getElementById("root"),
 );
