@@ -27,7 +27,6 @@ time, mark, audio, video {
   font: inherit;
   vertical-align: baseline;
 }
-@@ -55,27 +54,27 @@
 table {
   border-collapse: collapse;
   border-spacing: 0;
@@ -40,8 +39,7 @@ body {
   font-family: 'Source Sans Pro', sans-serif;
   color:${(props) => props.theme.white.darker};
   line-height: 1.2;
-  background-color: black;
-
+  background-color: black
 }
 a {
   text-decoration:none;
