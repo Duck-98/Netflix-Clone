@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getMovies, IGetMoviesResult } from '../api';
+import { getMovies, getMoviesDetail, IGetMoviesResult } from '../api';
 import styled from 'styled-components';
 import { makeImagePath } from '../utils';
 import { motion, AnimatePresence, useViewportScroll } from 'framer-motion';
-import { useHistory, useRouteMatch } from 'react-router-dom';
+import { useHistory, useParams, useRouteMatch } from 'react-router-dom';
 
 const Wrapper = styled.div`
   background: black;
@@ -155,6 +155,13 @@ const Home = () => {
   const bigMovieMatch = useRouteMatch<{ movieId: string }>('/movies/:movieId');
   const { scrollY } = useViewportScroll();
   const { data, isLoading } = useQuery<IGetMoviesResult>(['movies', 'nowPlaying'], getMovies);
+  const { movieId } = useParams<{ movieId: string }>();
+  console.log(movieId);
+  const { data: detailMovieData, isLoading: detailMovieLoading } = useQuery<{ movieId: string }>(
+    ['detail', movieId],
+    () => getMoviesDetail(movieId),
+  );
+
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const increaseIndex = () => {
@@ -178,7 +185,7 @@ const Home = () => {
   };
   const clickedMovie =
     bigMovieMatch?.params.movieId && data?.results.find((movie) => movie.id === +bigMovieMatch.params.movieId);
-  console.log(clickedMovie);
+
   return (
     <>
       <Wrapper>
