@@ -1,13 +1,25 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getMovies, getMoviesDetail, IGetMoviesResult } from '../api';
+import {
+  getMovies,
+  getMoviesDetail,
+  getMoviesPopular,
+  getMoviesUpcoming,
+  IGetDetailMoviesResult,
+  IGetMoviesResult,
+} from '../api';
 import styled from 'styled-components';
 import { makeImagePath } from '../utils';
 import { motion, AnimatePresence, useViewportScroll } from 'framer-motion';
-import { useHistory, useParams, useRouteMatch } from 'react-router-dom';
+import { useHistory, useRouteMatch } from 'react-router-dom';
+import { BsChevronCompactRight } from 'react-icons/bs';
 
 const Wrapper = styled.div`
   background: black;
+`;
+const Wrap = styled.div`
+  display: flex;
+  flex-direction: column;
 `;
 const Loader = styled.div`
   height: 200vh;
@@ -34,9 +46,29 @@ const Overview = styled.p`
   font-size: 24px;
   width: 50%;
 `;
+
+const Button = styled(motion.button)`
+  opacity: 0;
+  position: relative;
+  background-color: ${(props) => props.theme.black.lighter};
+  color: white;
+  font-size: 50px;
+  border: none;
+  top: 100px;
+  &:hover {
+    opacity: 1;
+  }
+`;
 const Slider = styled.div`
   position: relative;
   top: -100px;
+  h2 {
+    font-size: 20px;
+    font-weight: bold;
+  }
+`;
+const PopularSlider = styled(Slider)`
+  top: 100px;
 `;
 
 const Row = styled(motion.div)`
@@ -148,6 +180,17 @@ const rowVariants = {
     x: -window.outerWidth,
   },
 };
+
+const buttonVariants = {
+  normal: {
+    opacity: 0,
+  },
+  hover: {
+    opacity: 1,
+    scale: 1.3,
+  },
+};
+
 const offset = 6;
 
 const Home = () => {
@@ -155,13 +198,19 @@ const Home = () => {
   const bigMovieMatch = useRouteMatch<{ movieId: string }>('/movies/:movieId');
   const { scrollY } = useViewportScroll();
   const { data, isLoading } = useQuery<IGetMoviesResult>(['movies', 'nowPlaying'], getMovies);
-  const { movieId } = useParams<{ movieId: string }>();
-  console.log(movieId);
-  const { data: detailMovieData, isLoading: detailMovieLoading } = useQuery<{ movieId: string }>(
-    ['detail', movieId],
+  const movieId = bigMovieMatch?.params.movieId;
+  const { data: detailMovieData, isLoading: detailMovieLoading } = useQuery<IGetDetailMoviesResult>(
+    ['movies', 'detail', movieId],
     () => getMoviesDetail(movieId),
   );
-
+  const { data: popularMovieData, isLoading: popularMovieLoading } = useQuery<IGetMoviesResult>(
+    ['movies', 'popular'],
+    getMoviesPopular,
+  );
+  const { data: upcommingMovieData, isLoading: upcommingMovieLoading } = useQuery<IGetMoviesResult>(
+    ['movies', 'upcoming'],
+    getMoviesUpcoming,
+  );
   const [index, setIndex] = useState(0);
   const [leaving, setLeaving] = useState(false);
   const increaseIndex = () => {
@@ -183,9 +232,9 @@ const Home = () => {
   const onOverlayClick = () => {
     history.push('/');
   };
+
   const clickedMovie =
     bigMovieMatch?.params.movieId && data?.results.find((movie) => movie.id === +bigMovieMatch.params.movieId);
-
   return (
     <>
       <Wrapper>
@@ -197,7 +246,74 @@ const Home = () => {
               <Title>{data?.results[0].title}</Title>
               <Overview>{data?.results[0].overview}</Overview>
             </Banner>
-            <Slider>
+            <Wrap>
+              <Slider>
+                <h2>상영중인 영화</h2>
+                <AnimatePresence onExitComplete={toggleLeaving} initial={false}>
+                  <Row
+                    variants={rowVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
+                    transition={{ type: 'tween', duration: 1 }}
+                    key={index}
+                  >
+                    {data?.results
+                      .slice(1)
+                      .slice(offset * index, offset * index + offset)
+                      .map((movie) => (
+                        <Box
+                          layoutId={movie.id + ''}
+                          key={movie.id}
+                          onClick={() => onBoxClicked(movie.id)}
+                          whileHover="hover"
+                          initial="normal"
+                          variants={BoxVariants}
+                          transition={{ type: 'tween' }}
+                          bgPhoto={makeImagePath(movie.backdrop_path, 'w500')}
+                        >
+                          <img />
+                          <Info variants={InfoVariants}>
+                            <h4>{movie.title}</h4>
+                          </Info>
+                        </Box>
+                      ))}
+                  </Row>
+                </AnimatePresence>
+                <Button variants={buttonVariants} whileHover="hover" initial="normal">
+                  <BsChevronCompactRight />
+                </Button>
+              </Slider>
+            </Wrap>
+            <AnimatePresence>
+              {/* movieId 속성이 없다고 뜨면 => bigMovieMatch의 movieId의 타입을 string으로 지정해주면 됨. */}
+              {bigMovieMatch ? (
+                <>
+                  <Overlay onClick={onOverlayClick} exit={{ opacity: 0 }} animate={{ opacity: 1 }} />
+                  <BigMovie style={{ top: scrollY.get() + 100 }} layoutId={bigMovieMatch.params.movieId}>
+                    {clickedMovie && (
+                      <>
+                        <BigCover
+                          style={{
+                            backgroundImage: `linear-gradient(to top, black,transparent),url(${makeImagePath(
+                              clickedMovie.backdrop_path,
+                              'w500',
+                            )})`,
+                          }}
+                        />
+                        <BigTitle>{detailMovieData?.title}</BigTitle>
+                        <BigOverView>{detailMovieData?.release_date}</BigOverView>
+                        <BigOverView>{detailMovieData?.overview}</BigOverView>
+                        <BigOverView>{detailMovieData?.vote_average}</BigOverView>
+                        <BigOverView>{detailMovieData?.overview}</BigOverView>
+                      </>
+                    )}
+                  </BigMovie>
+                </>
+              ) : null}
+            </AnimatePresence>
+            <PopularSlider>
+              <h2>개봉예정 영화</h2>
               <AnimatePresence onExitComplete={toggleLeaving} initial={false}>
                 <Row
                   variants={rowVariants}
@@ -207,7 +323,7 @@ const Home = () => {
                   transition={{ type: 'tween', duration: 1 }}
                   key={index}
                 >
-                  {data?.results
+                  {upcommingMovieData?.results
                     .slice(1)
                     .slice(offset * index, offset * index + offset)
                     .map((movie) => (
@@ -229,31 +345,10 @@ const Home = () => {
                     ))}
                 </Row>
               </AnimatePresence>
-            </Slider>
-            <AnimatePresence>
-              {/* movieId 속성이 없다고 뜨면 => bigMovieMatch의 movieId의 타입을 string으로 지정해주면 됨. */}
-              {bigMovieMatch ? (
-                <>
-                  <Overlay onClick={onOverlayClick} exit={{ opacity: 0 }} animate={{ opacity: 1 }} />
-                  <BigMovie style={{ top: scrollY.get() + 100 }} layoutId={bigMovieMatch.params.movieId}>
-                    {clickedMovie && (
-                      <>
-                        <BigCover
-                          style={{
-                            backgroundImage: `linear-gradient(to top, black,transparent),url(${makeImagePath(
-                              clickedMovie.backdrop_path,
-                              'w500',
-                            )})`,
-                          }}
-                        />
-                        <BigTitle>{clickedMovie.title}</BigTitle>
-                        <BigOverView>{clickedMovie.overview}</BigOverView>
-                      </>
-                    )}
-                  </BigMovie>
-                </>
-              ) : null}
-            </AnimatePresence>
+              <Button variants={buttonVariants} whileHover="hover" initial="normal">
+                <BsChevronCompactRight />
+              </Button>
+            </PopularSlider>
           </>
         )}
       </Wrapper>
