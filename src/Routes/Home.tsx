@@ -12,7 +12,7 @@ import styled from 'styled-components';
 import { makeImagePath } from '../utils';
 import { motion, AnimatePresence, useViewportScroll } from 'framer-motion';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import { BsChevronCompactRight } from 'react-icons/bs';
+import { BsChevronCompactRight, BsChevronCompactLeft } from 'react-icons/bs';
 
 const Wrapper = styled.div`
   background: black;
@@ -20,6 +20,7 @@ const Wrapper = styled.div`
 const Wrap = styled.div`
   display: flex;
   flex-direction: column;
+  margin-bottom: 50px;
 `;
 const Loader = styled.div`
   height: 200vh;
@@ -46,15 +47,33 @@ const Overview = styled.p`
   font-size: 24px;
   width: 50%;
 `;
+const BtnWrap = styled.div`
+  position: absolute;
+  right: 0px;
+  cursor: pointer;
+  display: flex;
+  height: 200px;
+  width: 40px;
+  border: none;
+  z-index: 2;
+  color: rgb(229, 229, 229);
+`;
+const BtnWrapLeft = styled(BtnWrap)`
+  left: 0px;
+`;
 
 const Button = styled(motion.button)`
-  opacity: 0;
-  position: relative;
-  background-color: ${(props) => props.theme.black.lighter};
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.5);
   color: white;
   font-size: 50px;
+  height: 100%;
+  width: 40px;
   border: none;
-  top: 100px;
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
   &:hover {
     opacity: 1;
   }
@@ -187,7 +206,7 @@ const buttonVariants = {
   },
   hover: {
     opacity: 1,
-    scale: 1.3,
+    scale: 1,
   },
 };
 
@@ -249,6 +268,11 @@ const Home = () => {
             <Wrap>
               <Slider>
                 <h2>상영중인 영화</h2>
+                <BtnWrap>
+                  <Button variants={buttonVariants} whileHover="hover" initial="normal">
+                    <BsChevronCompactRight />
+                  </Button>
+                </BtnWrap>
                 <AnimatePresence onExitComplete={toggleLeaving} initial={false}>
                   <Row
                     variants={rowVariants}
@@ -280,9 +304,11 @@ const Home = () => {
                       ))}
                   </Row>
                 </AnimatePresence>
-                <Button variants={buttonVariants} whileHover="hover" initial="normal">
-                  <BsChevronCompactRight />
-                </Button>
+                <BtnWrapLeft>
+                  <Button variants={buttonVariants} whileHover="hover" initial="normal">
+                    <BsChevronCompactLeft />
+                  </Button>
+                </BtnWrapLeft>
               </Slider>
             </Wrap>
             <AnimatePresence>
@@ -314,6 +340,11 @@ const Home = () => {
             </AnimatePresence>
             <PopularSlider>
               <h2>개봉예정 영화</h2>
+              <BtnWrap>
+                <Button variants={buttonVariants} whileHover="hover" initial="normal">
+                  <BsChevronCompactRight />
+                </Button>
+              </BtnWrap>
               <AnimatePresence onExitComplete={toggleLeaving} initial={false}>
                 <Row
                   variants={rowVariants}
@@ -345,9 +376,11 @@ const Home = () => {
                     ))}
                 </Row>
               </AnimatePresence>
-              <Button variants={buttonVariants} whileHover="hover" initial="normal">
-                <BsChevronCompactRight />
-              </Button>
+              <BtnWrapLeft>
+                <Button variants={buttonVariants} whileHover="hover" initial="normal">
+                  <BsChevronCompactLeft />
+                </Button>
+              </BtnWrapLeft>
             </PopularSlider>
           </>
         )}
